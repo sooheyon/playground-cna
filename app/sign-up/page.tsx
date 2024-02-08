@@ -39,6 +39,8 @@ const SignUp: NextPage = () => {
         router.replace('/')
       }
 
+
+
       console.log(response);
     } catch (error) {
       console.error(error);
