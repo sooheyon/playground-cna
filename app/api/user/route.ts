@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
-
-const client = new PrismaClient({});
+import jwt from "jsonwebtoken";
+import { client } from "@/app/lib/prismaClient";
+import { verifyToken } from "@/app/lib/verifyToken";
 
 export const POST = async (request: NextRequest) => {
   try {
@@ -41,23 +42,16 @@ export const POST = async (request: NextRequest) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
 
-    const newUser = await client.user.create({
+    await client.user.create({
       data: {
         account,
         password: hashedPassword,
       },
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        account: true,
-      },
     });
 
-    console.log(newUser);
-
+    const token = jwt.sign({ account }, process.env.JWT_SECRET!);
     return NextResponse.json({
-      message: "hello bcs4 get data",
+      token,
     });
   } catch (error) {
     return NextResponse.json(
@@ -72,9 +66,22 @@ export const POST = async (request: NextRequest) => {
 };
 
 export const GET = async (request: NextRequest) => {
-  return NextResponse.json({
-    message: "hello bcs4 get data",
-  });
+  try {
+    const user = await verifyToken(request);
+
+    return NextResponse.json(user.account);
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        message: "Server Error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 };
 
 export const PUT = async (request: NextRequest) => {
