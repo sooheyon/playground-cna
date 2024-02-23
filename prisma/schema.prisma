@@ -19,7 +19,6 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   account      String   @unique
-  image        String
   nickname     String
   profileImage String
 }
